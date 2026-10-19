@@ -1,0 +1,39 @@
+# Evidence guide: where evidence lives in a PR package
+
+An eval bundle has five parts, in this order: `## Repo facts` (the repo's PR-template asks, contribution guide and AI policy), `## Issue`, `## Thread highlights` (each commenter with a role: OWNER, MEMBER, COLLABORATOR or maintainer versus NONE or CONTRIBUTOR), `## Plan context` (the repro evidence the plan built on, then the accepted plan: cause, scope, out-of-scope list, files, test plan) and `## Candidate PR` (`### Title`, `### Description`, `### Commits`, `### Diff`, `### Test evidence`). In live mode the same evidence comes from the student's working copy and the real repo: `plan.md` with its `## Deviations`, the branch's committed diff (`git diff main...HEAD`, three dots) and commits (`git log --oneline main..HEAD`), `test_evidence.md`, `pr_draft.md` (line 1 the title, the rest the description), the issue thread on GitHub, `.github/PULL_REQUEST_TEMPLATE.md`, `docs/CONTRIBUTING.md`, and the house rules in `scope.md`. The package is what those sources contain; other files in the working directory, and other students' PRs, are not evidence for it.
+
+## Plan fidelity (harness category: silent-drift)
+
+Where it lives:
+
+- Eval: the plan's commitments are in `## Plan context`: the "Scope" sentence ("one bounded change"), the "Not in scope" list, the "Files" list, and the approach steps. The change itself is `### Diff` (each `--- a/` file header and its hunks) and `### Commits`. Deviation notes live in the plan context or in the PR's `### Description` ("Deviation from the plan", "Changed from the plan because"). The description's fidelity claims are in `### Description` ("implements the plan exactly", "no changes beyond it", a list of changes).
+- Live: the scope, files, approach and `## Deviations` sections of `plan.md`; the hunks of `git diff main...HEAD`; the Summary, Changes and Notes for Reviewers sections of `pr_draft.md`.
+
+What good looks like: every changed file appears in the plan's files list or serves a change the plan commits to (its test, its doc or changelog entry, an import or helper it needs), or a deviation note names it and says why the fix needed it. Nothing on the "Not in scope" list shows up in the diff: no new option, flag, setting, dependency bump or rename the plan excluded or never named. Every change the plan promised is in the diff, or the PR says plainly which one is missing and why. Each claim the description makes about the diff is true of the diff; "implements the plan exactly" next to a hunk the plan never mentions is silent drift in the description, even when the extra hunk is harmless. Silent drift runs both ways: more than the plan with no note, or less than the plan with no note.
+
+## Test evidence (harness category: not-tested)
+
+Where it lives:
+
+- Eval: `### Test evidence` in `## Candidate PR`, plus any output pasted in `### Description`, read against the "Test plan" sentence of `## Plan context` and the commands, inputs and outputs in its repro evidence. The checks the repo expects are in `## Repo facts` ("pull requests:" and "contribution policy:" lines, for example a checklist item to run the test suite).
+- Live: `test_evidence.md` and the Testing section of `pr_draft.md`, read against the test plan in `plan.md` and the reproduction it quotes. The repo's expected checks are the Testing checklist in `.github/PULL_REQUEST_TEMPLATE.md` (for Path Review: `make test-unit`, `make test-integration`, `make lint`, `make typecheck`) and the checks named in `docs/CONTRIBUTING.md`.
+
+What good looks like: for each reproduced failure the test plan says to re-run, meaning each failure mode, input or failing test the repro evidence showed failing (count them: a plan that names two failure modes needs two runs), the evidence shows the command or test name on the changed code and its observed after-output, and that output is the plan's expected fixed result or visibly differs from the reproduced before-result. The run goes through the input that failed, not only a control that never broke. A named failing test counts when it is shown passing on its real assertion. Test-plan items that never failed (controls, edge or regression cases, a check of new behavior the plan adds) are fine as a named item with a stated outcome ("No-ampersand control unchanged"). Each command or suite the repo or plan says to run appears with its outcome, shown (a pass line, a count, an exit status, pasted output) or stated in a sentence that names it ("`go test ./...` passes", "fmt and clippy clean"); a check that failed, could not run, or ran zero tests is fine when its real outcome is reported as is with the reason. Template checklist attestations that are not commands ("code formatted") are standards asks, below. Not decisive: "tested locally", "works now" or "tests pass" in place of the reproduced failure's re-run, a ticked box with no outcome behind it, or a re-run of only the unchanged path.
+
+## Diff quality (harness category: unreviewable)
+
+Where it lives:
+
+- Eval: `### Diff` hunk by hunk, and `### Commits` (messages such as "gofmt", "cleanup", "wip", "debug" point at hunks to inspect).
+- Live: `git diff main...HEAD`, hunk by hunk, and `git log --oneline main..HEAD`.
+
+What good looks like: a reviewer can see the fix and nothing else. Each hunk belongs to the fix, its tests, its docs or changelog, or a generated or lock file the change requires. The debris tells, each enough to fail: `print`, `console.log`, `dbg!` or temporary logging lines; commented-out code; dead or unreachable code and unused helpers; reformatting, reordering or whitespace changes in lines the fix does not touch; drive-by renames, refactors or rewrites of neighboring code; edits to unrelated files; personal or draft files (in live mode `plan.md`, `comment.md`, `pr_draft.md`, `test_evidence.md`, scratch scripts). A cleanup the description admits to is still debris in this PR: it belongs in its own PR.
+
+## Standards and comms (harness category: standards-wall)
+
+Where it lives:
+
+- Eval: the "pull requests:" line of `## Repo facts` (template sections and checklist items, and artifacts they require, such as a changelog or whatsnew entry, an issue link like "closes #xxxx", regenerated docs), its "contribution policy" line (including any AI-use policy and its stated form), and maintainer comments in `## Thread highlights` that ask something of the PR. The PR's answers are in `### Title`, `### Description`, `### Commits` and `### Diff` (for artifact files such as a changelog entry).
+- Live: `.github/PULL_REQUEST_TEMPLATE.md` (Summary, Issue with `Closes #`, Changes, Testing checklist, Screenshots / Demo, Notes for Reviewers), `docs/CONTRIBUTING.md` (branch naming `<type>/<issue-number>-<short-description>`, Conventional Commits, removing a seeded bug's `xfail` marker and matching `pyproject.toml` suppression), `scope.md`'s house rules (template always used; AI use disclosed, which the course puts under Notes for Reviewers), and maintainer comments on the issue (`author_association` OWNER, MEMBER or COLLABORATOR). The PR's answers are in `pr_draft.md` and the diff.
+
+What good looks like: each section or checklist item the template asks for has real content, in its own section or in plain prose, and each "N/A" carries a reason. Each artifact an ask requires is present (the issue link names the issue, the changelog file is in the diff) or the PR explains why it does not apply. Where the repo states an AI-use policy, the PR meets it in the stated form; silence does not meet a disclosure requirement, because the work is AI-assisted. Where a maintainer asked something of this PR, the PR does it or answers it. Visibly ignored: missing required sections, an unfilled checklist, a template-required entry absent from the diff, or no disclosure under a policy that requires one. Whether the description's claims match the diff is not judged here; that is Plan fidelity.
