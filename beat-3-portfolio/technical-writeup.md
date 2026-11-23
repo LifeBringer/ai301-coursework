@@ -50,7 +50,8 @@ It did not merge. The full-suite run waited at `action_required` for fork-workfl
 
 ```text
 2026-11-12 09:22 [state] https://github.com/kunchenguid/firstmate/pull/7376
-- state: feedback-in: review feedback is in (latest from the thread: comment 5 days ago)
+- state: feedback-in: review feedback is in (latest from the thread:
+  comment 5 days ago)
 - mergeability: CONFLICTING/DIRTY
 ```
 
@@ -72,14 +73,14 @@ The same comment named both earlier PRs and ended: "Please let me know which dir
 The ship-gate checks a branch before it ships. It runs every check in my manifest, then grades the branch with my pr-precheck rubric, and it says PASS or STOP. My PR already existed, so I ran `check_gate.py --branch` by hand. Run 1 said STOP:
 
 ```text
-ship-gate: STOP. your own pr-precheck rejected fm/firstmate-home-summary-timeout:
-  verdict reject.
+ship-gate: STOP. your own pr-precheck rejected
+  fm/firstmate-home-summary-timeout: verdict reject.
   - Plan fidelity [unclear]: Gate diffed against a stale local main (516 files,
     99,908 insertions, hundreds of upstream commits) and truncated at 120,000
     chars before bin/ or tests/, ...
-  - Repo checks reported [fail]: CONTRIBUTING says to run bin/fm-doc-audience-check.sh
-    after documentation changes; the PR edits docs/configuration.md and no outcome
-    for that command appears; ...
+  - Repo checks reported [fail]: CONTRIBUTING says to run
+    bin/fm-doc-audience-check.sh after documentation changes; the PR edits
+    docs/configuration.md and no outcome for that command appears; ...
 ```
 
 Two of these findings were my mistakes as the tool's author, not problems in the branch. The gate diffed against my stale local main, so I passed `--base upstream/main`. My manifest also skipped a check that CONTRIBUTING.md requires. Run 1 ran three checks:
@@ -102,10 +103,11 @@ I added this row to the manifest's "Must pass before a ship" table:
 Run 2 passed all four checks (`Documentation audience check: ok (3s)`) and still said STOP, on one row:
 
 ```text
-  - Plan fidelity [fail]: Description says the --help text and the docs/configuration.md entry
-    'describe the batched workers and note that collection time still grows with accumulated
-    status history'; the docs diff is one line adding the fold and row composition to the
-    concurrency cap, with no mention of batches or history growth.
+  - Plan fidelity [fail]: Description says the --help text and the
+    docs/configuration.md entry 'describe the batched workers and note that
+    collection time still grows with accumulated status history'; the docs
+    diff is one line adding the fold and row composition to the concurrency
+    cap, with no mention of batches or history growth.
 ```
 
 The gate was right. My description claimed more than my one-line docs change did. To fix it, I had to update the PR, and the branch also conflicted with main, so I fixed both together. I rebased onto `a9ae3c0c` and resolved the conflict in `_fm_decision_fold_line`, where upstream had added a deferral column next to my output-variable argument. Then I checked that the fold still matched main: 480 of 480 fuzzed fold comparisons were equal byte for byte. I raised the branch through no-mistakes again, and the pipeline wrote a new description. The no-mistakes test step measured the real refresh at 7s on the new head and 39s on main. The docs claim changed:
@@ -118,10 +120,11 @@ The generator put `Fixes #6257` in backticks, which breaks the issue link, so I 
 ```text
 ship-gate: PASS. fm/firstmate-home-summary-timeout passed your manifest's checks
   and your pr-precheck.
-  Plan fidelity [pass]: Every hunk maps to a plan item ... description claims match the diff.
+  Plan fidelity [pass]: Every hunk maps to a plan item ... description claims
+    match the diff.
   Template and policy asks [pass]: No PR template; 'Fixes #6257' present; ...
-  Calibrated claims [fail]: '480 ... folds over 40 fuzzed status logs' is not shown (pipeline
-    evidence shows 80 logs, seeds 1 and 2); ...
+  Calibrated claims [fail]: '480 ... folds over 40 fuzzed status logs' is not
+    shown (pipeline evidence shows 80 logs, seeds 1 and 2); ...
 ```
 
 Calibrated claims is a preferred check, so it does not change the verdict. I come back to it below.
