@@ -72,26 +72,32 @@ The same comment named both earlier PRs and ended: "Please let me know which dir
 The ship-gate checks a branch before it ships. It runs every check in my manifest, then grades the branch with my pr-precheck rubric, and it says PASS or STOP. My PR already existed, so I ran `check_gate.py --branch` by hand. Run 1 said STOP:
 
 ```text
-ship-gate: STOP. your own pr-precheck rejected fm/firstmate-home-summary-timeout: verdict reject.
-  - Plan fidelity [unclear]: Gate diffed against a stale local main (516 files, 99,908 insertions,
-    hundreds of upstream commits) and truncated at 120,000 chars before bin/ or tests/, ...
-  - Repo checks reported [fail]: CONTRIBUTING says to run bin/fm-doc-audience-check.sh after
-    documentation changes; the PR edits docs/configuration.md and no outcome for that command appears; ...
+ship-gate: STOP. your own pr-precheck rejected fm/firstmate-home-summary-timeout:
+  verdict reject.
+  - Plan fidelity [unclear]: Gate diffed against a stale local main (516 files,
+    99,908 insertions, hundreds of upstream commits) and truncated at 120,000
+    chars before bin/ or tests/, ...
+  - Repo checks reported [fail]: CONTRIBUTING says to run bin/fm-doc-audience-check.sh
+    after documentation changes; the PR edits docs/configuration.md and no outcome
+    for that command appears; ...
 ```
 
 Two of these findings were my mistakes as the tool's author, not problems in the branch. The gate diffed against my stale local main, so I passed `--base upstream/main`. My manifest also skipped a check that CONTRIBUTING.md requires. Run 1 ran three checks:
 
 ```text
-ship-gate: repo check 1/3 `Lint (ShellCheck 0.11.0 + actionlint 1.7.12)`: bin/fm-lint.sh
-ship-gate: repo check 2/3 `Home-summary refresh suite`: bin/fm-test-run.sh tests/fm-home-summary-refresh.test.sh
-ship-gate: repo check 3/3 `Decision-key fold suite`: bin/fm-test-run.sh tests/fm-classify-decision-key.test.sh
+ship-gate: repo check 1/3 `Lint (ShellCheck 0.11.0 + actionlint 1.7.12)`:
+  bin/fm-lint.sh
+ship-gate: repo check 2/3 `Home-summary refresh suite`:
+  bin/fm-test-run.sh tests/fm-home-summary-refresh.test.sh
+ship-gate: repo check 3/3 `Decision-key fold suite`:
+  bin/fm-test-run.sh tests/fm-classify-decision-key.test.sh
 ```
 
-I added this row to the manifest:
+I added this row to the manifest's "Must pass before a ship" table:
 
-```text
+| Check | Command | Source |
+|---|---|---|
 | Documentation audience check | bin/fm-doc-audience-check.sh | CONTRIBUTING.md, Repo conventions: "run bin/fm-doc-audience-check.sh after documentation changes" (the PR edits docs/configuration.md; added 2026-11-12 after the first gate run) |
-```
 
 Run 2 passed all four checks (`Documentation audience check: ok (3s)`) and still said STOP, on one row:
 
@@ -110,7 +116,8 @@ The gate was right. My description claimed more than my one-line docs change did
 The generator put `Fixes #6257` in backticks, which breaks the issue link, so I made one hand edit. Run 3, on the new head `daaa6660`:
 
 ```text
-ship-gate: PASS. fm/firstmate-home-summary-timeout passed your manifest's checks and your pr-precheck.
+ship-gate: PASS. fm/firstmate-home-summary-timeout passed your manifest's checks
+  and your pr-precheck.
   Plan fidelity [pass]: Every hunk maps to a plan item ... description claims match the diff.
   Template and policy asks [pass]: No PR template; 'Fixes #6257' present; ...
   Calibrated claims [fail]: '480 ... folds over 40 fuzzed status logs' is not shown (pipeline
